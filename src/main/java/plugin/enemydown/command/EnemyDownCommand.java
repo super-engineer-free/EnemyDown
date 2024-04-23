@@ -49,7 +49,7 @@ public class EnemyDownCommand extends BaseCommand implements Listener, org.bukki
   public static final String NORMAL = "normal";
   public static final String HARD = "hard";
   public static  final  String NONE="hard";
-  public static  final  String LIST="list";
+  public static  final  String List="list";
   private final Enemydown main;
   private  List<PlayerScore> playerScoreList = new ArrayList<>();
   private List<Entity> spawnEntityList = new ArrayList<>();
@@ -60,34 +60,35 @@ public class EnemyDownCommand extends BaseCommand implements Listener, org.bukki
 
   @Override
   public boolean onExecutePlayerCommand(Player player, Command command, String label, String[] args) {
-    System.out.println();
-    if (args.length == 1 && LIST.equals(args[0])) {
-           try(Connection con = DriverManager.getConnection(
-               "jdbc:mysql://localhost:3306/spigot_server",
-               "root",
-               "super59");
+    if (args.length == 1 && List.equals(args[0])){
+      try (Connection con = DriverManager.getConnection(
+          "jdbc:mysql://spigotdb.comklmdrpqa0.ap-northeast-1.rds.amazonaws.com:3306/spigot_plugin",
+          "root",
+          "rootroot");
           Statement statement = con.createStatement();
-          ResultSet resultset = statement.executeQuery("select * from player_score;")){
-            while (resultset.next()) {
-              int id = resultset.getInt("id");
-              String name = resultset.getString("player_name");
-              int score = resultset.getInt("score");
-              String difficulty = resultset.getString("difficulty");
+          ResultSet resultSet = statement.executeQuery("select * from player_score;")){
+            while (resultSet.next()){
+             int id = resultSet.getInt("id");
+             String name = resultSet.getString("player_name");
+             int score = resultSet.getInt("score");
+             String difficulty = resultSet.getString("difficulty");
 
               DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-              LocalDateTime date = LocalDateTime.parse(resultset.getString("registered_at"), formatter);
+              LocalDateTime dete = LocalDateTime.parse(resultSet.getString("registered_at"),
+                  formatter);
 
-              player.sendMessage (id +  "| " + name + "|" + score + "|" + difficulty + "|" + date.format(formatter));
-            }
+              player.sendMessage(id +"|" + name+"|"+score+"|"+difficulty+"|"+dete.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH: mm:ss")));
+
+       }
       } catch (SQLException e) {
         e.printStackTrace();
       }
       return false;
     }
-    String difficulty = getDifficulty(player, args);
-    if (difficulty.equals(NONE)){
-      return false;
-    }
+   String difficulty = getDifficulty(player, args);
+if (difficulty.equals(NONE)){
+  return false;
+}
     PlayerScore nowPlayerScore = getPlayerSore(player);
 
     initPlayerStatus(player);
@@ -105,14 +106,14 @@ public class EnemyDownCommand extends BaseCommand implements Listener, org.bukki
    */
   private  String getDifficulty(Player player, String[] args) {
     if (args.length == 1 && (EASY.equals(args[0])||NORMAL.equals(args[0])||HARD.equals(args[0]))) {
-      return args[0];
+       return args[0];
     }
     player.sendMessage(ChatColor.RED+"実行出来ません。コマンド引数の1つ目に難易度指定が必要です。[easy,normal,hard]");
     return NONE;
   }
 
   @Override
-  public boolean onExecuteNPCCommand (CommandSender sender, Command command, String label, String[] args) {
+  public boolean onExecuteNPCCommand(CommandSender sender, Command command, String label, String[] args) {
     return false;
   }
 
@@ -213,21 +214,6 @@ public class EnemyDownCommand extends BaseCommand implements Listener, org.bukki
         player.sendTitle("ゲームが終了しました。",
             nowPlayerScore.getPlayerName() + "合計 " + nowPlayerScore.getScore() + "点!",
             0, 60, 0);
-
-        try(Connection con = DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/spigot_server",
-            "root",
-            "super59");
-            Statement statement = con.createStatement()){
-
-          statement.executeUpdate(
-              " insert  player_score(player_name, score, difficulty, registered_dt)"
-
-                  + "values('" + nowPlayerScore.getPlayerName() + "'" + nowPlayerScore.getScore()
-                  + ",'" + difficulty + "',now()");
-        } catch (SQLException e) {
-          throw new RuntimeException();
-        }
 
         spawnEntityList.forEach(Entity::remove);
         spawnEntityList.clear();
