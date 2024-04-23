@@ -1,6 +1,6 @@
 name: EnemyDown
 version: '1.0-SNAPSHOT'
-main: plugin.enemydown.Main
+main: plugin.enemydown.Enemydown
 api-version: '1.20'
 commands:
   enemyDown:

@@ -18,6 +18,6 @@ public final class Enemydown extends JavaPlugin  {
         getCommand("enemyDown").setExecutor(enemyDownCommand);
         EnemySpawnCommand enemySpawnCommand = new EnemySpawnCommand();
         Bukkit.getPluginManager().registerEvents(enemySpawnCommand, this);
-        getCommand("enemy spawn").setExecutor(enemySpawnCommand);
+        getCommand("enemyspawn").setExecutor(enemySpawnCommand);
     }
 }
