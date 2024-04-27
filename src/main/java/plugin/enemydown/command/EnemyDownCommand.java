@@ -49,7 +49,7 @@ public class EnemyDownCommand extends BaseCommand implements Listener, org.bukki
   public static final String NORMAL = "normal";
   public static final String HARD = "hard";
   public static  final  String NONE="hard";
-  public static  final  String List="list";
+  public static  final  String LIST="list";
   private final Enemydown main;
   private  List<PlayerScore> playerScoreList = new ArrayList<>();
   private List<Entity> spawnEntityList = new ArrayList<>();
@@ -60,35 +60,32 @@ public class EnemyDownCommand extends BaseCommand implements Listener, org.bukki
 
   @Override
   public boolean onExecutePlayerCommand(Player player, Command command, String label, String[] args) {
-    if (args.length == 1 && List.equals(args[0])){
-      try (Connection con = DriverManager.getConnection(
-          "jdbc:mysql://spigotdb.comklmdrpqa0.ap-northeast-1.rds.amazonaws.com:3306/spigot_plugin",
-          "root",
-          "rootroot");
+    if (args.length == 1 && LIST.equals(args[0])) {
+           try(Connection con = DriverManager.getConnection("jdbc:mysql://spigotdb.comklmdrpqa0.ap-northeast-1.rds.amazonaws.com:3306/spigot_plugin",
+               "root",
+               "super59");
           Statement statement = con.createStatement();
-          ResultSet resultSet = statement.executeQuery("select * from player_score;")){
-            while (resultSet.next()){
-             int id = resultSet.getInt("id");
-             String name = resultSet.getString("player_name");
-             int score = resultSet.getInt("score");
-             String difficulty = resultSet.getString("difficulty");
+          ResultSet resultset = statement.executeQuery("select * from player_score;")){
+            while (resultset.next()) {
+              int id = resultset.getInt("id");
+              String name = resultset.getString("player_name");
+              int score = resultset.getInt("score");
+              String difficulty = resultset.getString("difficulty");
 
               DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-              LocalDateTime dete = LocalDateTime.parse(resultSet.getString("registered_at"),
-                  formatter);
+              LocalDateTime date = LocalDateTime.parse(resultset.getString("registered_at"), formatter);
 
-              player.sendMessage(id +"|" + name+"|"+score+"|"+difficulty+"|"+dete.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH: mm:ss")));
-
-       }
+              player.sendMessage(id + " | " + name + "|" + score + "|" + difficulty + "|" + date.format(formatter));
+            }
       } catch (SQLException e) {
         e.printStackTrace();
       }
       return false;
     }
-   String difficulty = getDifficulty(player, args);
-if (difficulty.equals(NONE)){
-  return false;
-}
+    String difficulty = getDifficulty(player, args);
+    if (difficulty.equals(NONE)){
+      return false;
+    }
     PlayerScore nowPlayerScore = getPlayerSore(player);
 
     initPlayerStatus(player);
@@ -106,7 +103,7 @@ if (difficulty.equals(NONE)){
    */
   private  String getDifficulty(Player player, String[] args) {
     if (args.length == 1 && (EASY.equals(args[0])||NORMAL.equals(args[0])||HARD.equals(args[0]))) {
-       return args[0];
+      return args[0];
     }
     player.sendMessage(ChatColor.RED+"実行出来ません。コマンド引数の1つ目に難易度指定が必要です。[easy,normal,hard]");
     return NONE;
