@@ -30,7 +30,7 @@ public abstract class BaseCommand implements CommandExecutor {
    */
 
 
-  public abstract boolean onExecutePlayerCommand(Player player, Command command, String label, String[] args);
+  public abstract boolean onExecutePlayerCommand(Player player, Command command, String label, String[] args) ;
 
   /**
    *  コマンド実行者がプレイヤーだった場合とします。
