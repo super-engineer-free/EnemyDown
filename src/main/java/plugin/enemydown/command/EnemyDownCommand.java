@@ -60,8 +60,10 @@ public class EnemyDownCommand extends BaseCommand implements Listener, org.bukki
 
   @Override
   public boolean onExecutePlayerCommand(Player player, Command command, String label, String[] args) {
+    System.out.println();
     if (args.length == 1 && LIST.equals(args[0])) {
-           try(Connection con = DriverManager.getConnection("jdbc:mysql://spigotdb.comklmdrpqa0.ap-northeast-1.rds.amazonaws.com:3306/spigot_plugin",
+           try(Connection con = DriverManager.getConnection(
+               "jdbc:mysql://localhost:3306/spigot_server",
                "root",
                "super59");
           Statement statement = con.createStatement();
@@ -75,7 +77,7 @@ public class EnemyDownCommand extends BaseCommand implements Listener, org.bukki
               DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
               LocalDateTime date = LocalDateTime.parse(resultset.getString("registered_at"), formatter);
 
-              player.sendMessage(id + " | " + name + "|" + score + "|" + difficulty + "|" + date.format(formatter));
+              player.sendMessage (id +  "| " + name + "|" + score + "|" + difficulty + "|" + date.format(formatter));
             }
       } catch (SQLException e) {
         e.printStackTrace();
@@ -110,7 +112,7 @@ public class EnemyDownCommand extends BaseCommand implements Listener, org.bukki
   }
 
   @Override
-  public boolean onExecuteNPCCommand(CommandSender sender, Command command, String label, String[] args) {
+  public boolean onExecuteNPCCommand (CommandSender sender, Command command, String label, String[] args) {
     return false;
   }
 
@@ -211,6 +213,21 @@ public class EnemyDownCommand extends BaseCommand implements Listener, org.bukki
         player.sendTitle("ゲームが終了しました。",
             nowPlayerScore.getPlayerName() + "合計 " + nowPlayerScore.getScore() + "点!",
             0, 60, 0);
+
+        try(Connection con = DriverManager.getConnection(
+            "jdbc:mysql://localhost:3306/spigot_server",
+            "root",
+            "super59");
+            Statement statement = con.createStatement()){
+
+          statement.executeUpdate(
+              " insert  player_score(player_name, score, difficulty, registered_dt)"
+
+                  + "values('" + nowPlayerScore.getPlayerName() + "'" + nowPlayerScore.getScore()
+                  + ",'" + difficulty + "',now()");
+        } catch (SQLException e) {
+          throw new RuntimeException();
+        }
 
         spawnEntityList.forEach(Entity::remove);
         spawnEntityList.clear();
