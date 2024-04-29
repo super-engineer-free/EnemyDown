@@ -53,11 +53,10 @@ public class EnemyDownCommand extends BaseCommand implements Listener, org.bukki
   public static  final  String NONE="hard";
   public static  final  String LIST="list";
   private final Enemydown main;
-  private  List<ExecutingPlayer> executingPlayerList = new ArrayList<>();
-  private List<Entity> spawnEntityList = new ArrayList<>();
+  private final List<ExecutingPlayer> executingPlayerList = new ArrayList<>();
+  private final List<Entity> spawnEntityList = new ArrayList<>();
 
-
-  private    SqlSessionFactory sqlSessionFactory;
+  private SqlSessionFactory sqlSessionFactory;
 
   public EnemyDownCommand(Enemydown main)  {
     this.main = main;
@@ -94,26 +93,26 @@ public class EnemyDownCommand extends BaseCommand implements Listener, org.bukki
    }
 
 
-           try(Connection con = DriverManager.getConnection(
-               "jdbc:mysql://localhost:3306/spigot_server",
-               "root",
-               "super59");
-          Statement statement = con.createStatement();
-          ResultSet resultset = statement.executeQuery("select * from player_score;")){
-            while (resultset.next()) {
-              int id = resultset.getInt("id");
-              String name = resultset.getString("player_name");
-              int score = resultset.getInt("score");
-              String difficulty = resultset.getString("difficulty");
-
-              DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-              LocalDateTime date = LocalDateTime.parse(resultset.getString("registered_at"), formatter);
-
-              player.sendMessage (id +  "| " + name + "|" + score + "|" + difficulty + "|" + date.format(formatter));
-            }
-      } catch (SQLException e) {
-        e.printStackTrace();
-      }
+//           try(Connection con = DriverManager.getConnection(
+//               "jdbc:mysql://localhost:3306/spigot_server",
+//               "root",
+//               "super59");
+//          Statement statement = con.createStatement();
+//          ResultSet resultset = statement.executeQuery("select * from player_score;")){
+//            while (resultset.next()) {
+//              int id = resultset.getInt("id");
+//              String name = resultset.getString("player_name");
+//              int score = resultset.getInt("score");
+//              String difficulty = resultset.getString("difficulty");
+//
+//              DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+//              LocalDateTime date = LocalDateTime.parse(resultset.getString("registered_at"), formatter);
+//
+//              player.sendMessage (id +  "| " + name + "|" + score + "|" + difficulty + "|" + date.format(formatter));
+//            }
+//      } catch (SQLException e) {
+//        e.printStackTrace();
+//      }
       return false;
     }
     String difficulty = getDifficulty(player, args);

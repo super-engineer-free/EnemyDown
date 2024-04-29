@@ -2,7 +2,6 @@ package plugin.enemydown.mapper;
 
 import java.util.List;
 import org.apache.ibatis.annotations.Select;
-import org.bukkit.entity.Player;
 import plugin.enemydown.mapper.data.PlayerScore;
 
 public interface PlayerScoreMapper {
