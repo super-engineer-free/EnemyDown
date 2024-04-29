@@ -1,22 +1,12 @@
 package plugin.enemydown.command;
 
-import java.io.InputStream;
 import java.net.http.WebSocket.Listener;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.SplittableRandom;
-import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.session.SqlSession;
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.apache.ibatis.session.SqlSessionFactoryBuilder;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -32,8 +22,9 @@ import org.bukkit.event.entity.EntityDeathEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
+import plugin.PlayerScoreData;
 import plugin.enemydown.Enemydown;
-import plugin.enemydown.deta.ExecutingPlayer;
+import plugin.enemydown.date.ExecutingPlayer;
 import plugin.enemydown.mapper.PlayerScoreMapper;
 import plugin.enemydown.mapper.data.PlayerScore;
 
@@ -53,44 +44,71 @@ public class EnemyDownCommand extends BaseCommand implements Listener, org.bukki
   public static  final  String NONE="hard";
   public static  final  String LIST="list";
   private final Enemydown main;
+   private final PlayerScoreData playerScoreData = new PlayerScoreData();
+
   private final List<ExecutingPlayer> executingPlayerList = new ArrayList<>();
   private final List<Entity> spawnEntityList = new ArrayList<>();
 
-  private SqlSessionFactory sqlSessionFactory;
+
 
   public EnemyDownCommand(Enemydown main)  {
     this.main = main;
 
-    try {
-      InputStream inputStream = Resources.getResourceAsStream("mybatis-config.xml");
-      this.sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
 
   }
 
   @Override
   public boolean onExecutePlayerCommand(Player player, Command command, String label, String[] args) {
+    //最初の引数が『list』だったらスコアを一覧表示して処理を終了する。
     System.out.println();
     if (args.length == 1 && LIST.equals(args[0])) {
-   try(SqlSession session =sqlSessionFactory.openSession()){
-     PlayerScoreMapper mapper = session.getMapper(PlayerScoreMapper.class);
-     List<PlayerScore> playerScoreList = mapper.selectList();
+      sendPlayerScoreList(player);
+      return false;
+    }
 
-     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-     for (PlayerScore playerScore: playerScoreList){
-       LocalDateTime date = LocalDateTime.parse(playerScore.getRegistered_at(), formatter);
+    String difficulty = getDifficulty(player, args);
+    if (difficulty.equals(NONE)){
+      return false;
+    }
+    ExecutingPlayer nowExecutingPlayer = getPlayerSore(player);
 
-       player.sendMessage (playerScore.getId() +  "| "
-           + playerScore.getPlayerName() + "|"
-           + PlayerScore.getScore() + "|"
-           + playerScore.getDifficulty() + "|"
-           + date.format(formatter));
+    initPlayerStatus(player);
 
+    gamePlay(player, nowExecutingPlayer,difficulty);
+    return true;
+  }
 
-     }
-   }
+  /**
+   * 現在登録されているスコアの一覧をメッセージに送る。
+   *
+   * @param player　プレイヤー
+   */
+  private void sendPlayerScoreList(Player player) {
+    List<PlayerScore> playerScoreList = playerScoreData.selectList();
+    for (PlayerScore playerScore: playerScoreList){
+      player.sendMessage (playerScore.getId() +  "|"
+          + playerScore.getPlayerName() + "|"
+          + PlayerScore.getScore() + "|"
+          + playerScore.getDifficulty() + "|"
+          + playerScore.getRegistered_at().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
+    }
+  }
+
+  /**
+   * 難易度をコマンド引数から取得します。
+   *
+   * @param player　コマンドを実行したプレイヤー
+   * @param args　コマンド引数
+   * @return
+   */
+
+   String getDifficulty(Player player, String[] args) {
+    if (args.length == 1 && (EASY.equals(args[0])||NORMAL.equals(args[0])||HARD.equals(args[0]))) {
+      return args[0];
+    }
+    player.sendMessage(ChatColor.RED+"実行出来ません。コマンド引数の1つ目に難易度指定が必要です。[easy,normal,hard]");
+    return NONE;
+  }
 
 
 //           try(Connection con = DriverManager.getConnection(
@@ -113,39 +131,17 @@ public class EnemyDownCommand extends BaseCommand implements Listener, org.bukki
 //      } catch (SQLException e) {
 //        e.printStackTrace();
 //      }
-      return false;
-    }
-    String difficulty = getDifficulty(player, args);
-    if (difficulty.equals(NONE)){
-      return false;
-    }
-    ExecutingPlayer nowExecutingPlayer = getPlayerSore(player);
 
-    initPlayerStatus(player);
 
-    gamePlay(player, nowExecutingPlayer,difficulty);
-    return true;
-  }
 
-  /**
-   * 難易度をコマンド引数から取得します。
-   *
-   * @param player　コマンドを実行したプレイヤー
-   * @param args　コマンド引数
-   * @return
-   */
-  private  String getDifficulty(Player player, String[] args) {
-    if (args.length == 1 && (EASY.equals(args[0])||NORMAL.equals(args[0])||HARD.equals(args[0]))) {
-      return args[0];
-    }
-    player.sendMessage(ChatColor.RED+"実行出来ません。コマンド引数の1つ目に難易度指定が必要です。[easy,normal,hard]");
-    return NONE;
-  }
+
 
   @Override
   public boolean onExecuteNPCCommand (CommandSender sender, Command command, String label, String[] args) {
     return false;
   }
+
+
 
   @EventHandler
   public void onEnemyDeath(EntityDeathEvent e) {
@@ -245,24 +241,32 @@ public class EnemyDownCommand extends BaseCommand implements Listener, org.bukki
             nowExecutingPlayer.getPlayerName() + "合計 " + nowExecutingPlayer.getScore() + "点!",
             0, 60, 0);
 
-        try(Connection con = DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/spigot_server",
-            "root",
-            "super59");
-            Statement statement = con.createStatement()){
 
-          statement.executeUpdate(
-              " insert  player_score(player_name, score, difficulty, registered_at)"
-                  + "values('" + nowExecutingPlayer.getPlayerName() + "'," + nowExecutingPlayer.getScore() + ",'"
-                  + difficulty + "',now());");
-        } catch (SQLException e) {
-          e.printStackTrace();
-        }
+
+//        try(Connection con = DriverManager.getConnection(
+//            "jdbc:mysql://localhost:3306/spigot_server",
+//            "root",
+//            "super59");
+//            Statement statement = con.createStatement()){
+//
+//          statement.executeUpdate(
+//              " insert  player_score(player_name, score, difficulty, registered_at)"
+//                  + "values('" + nowExecutingPlayer.getPlayerName() + "'," + nowExecutingPlayer.getScore() + ",'"
+//                  + difficulty + "',now());");
+//        } catch (SQLException e) {
+//          e.printStackTrace();
+//        }
 
         spawnEntityList.forEach(Entity::remove);
         spawnEntityList.clear();
 
         removePotionEffect(player);
+
+      playerScoreData.insert(
+          new PlayerScore(nowExecutingPlayer.getPlayerName()
+              ,nowExecutingPlayer.getScore()
+              ,difficulty));
+
         return;
       }
       Entity spawnEntity = player.getWorld().spawnEntity(getEnemySpawnLocation(player), getEnemy(difficulty));
