@@ -33,7 +33,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.potion.PotionEffect;
 import plugin.enemydown.Enemydown;
-import plugin.enemydown.deta.ExecutingPlayer;
+import plugin.enemydown.date.ExecutingPlayer;
 import plugin.enemydown.mapper.PlayerScoreMapper;
 import plugin.enemydown.mapper.data.PlayerScore;
 
