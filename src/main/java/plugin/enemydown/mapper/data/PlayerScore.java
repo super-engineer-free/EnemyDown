@@ -1,7 +1,8 @@
 package plugin.enemydown.mapper.data;
 
-import java.time.format.DateTimeFormatter;
+import java.time.LocalDateTime;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 /**
@@ -10,15 +11,21 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@NoArgsConstructor
 public class PlayerScore {
 
   private int id;
-  private String playerName;
+  private  String playerName;
   private static int score;
-  private String difficulty;
-  private String registered_at;
+  private  String difficulty;
+  private LocalDateTime registered_at;
 
 
+public  PlayerScore(String playerName,int score,String difficulty) {
+  this.playerName =playerName;
+  PlayerScore.score =score;
+  this.difficulty = difficulty;
+}
 
 
   public int getId() {
@@ -38,8 +45,7 @@ public class PlayerScore {
     return difficulty;
   }
 
-  public String getRegistered_at() {
+  public LocalDateTime getRegistered_at() {
     return registered_at;
   }
-
 }
