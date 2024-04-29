@@ -32,9 +32,14 @@ dependencies {
 
    testImplementation'org.junit.jupiter:junit-jupiter:5.9.2'
     testImplementation'org.mockito:mockito-core3.+'
+    dependencies {
+        testImplementation 'org.mockito:mockito-core:3.+'
+    }
+
+
 }
-test {
-    useJUnitPlatform()
+test{
+   useJUnitPlatform()
 }
 
 
